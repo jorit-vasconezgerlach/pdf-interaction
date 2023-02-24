@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+          <meta charset="UTF-8">
+          <title>PDF Text Extractor</title>
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.3.122/pdf.min.js"></script>
+</head>
+
+<body>
+          <input type="file" id="pdf-file-input">
+          <textarea id="pdf-textarea"></textarea>
+
+          <script>
+                    var pdfFileInput = document.getElementById('pdf-file-input');
+                    var pdfTextarea = document.getElementById('pdf-textarea');
+
+                    pdfFileInput.addEventListener('change', function () {
+                              var file = pdfFileInput.files[0];
+                              var fileReader = new FileReader();
+
+                              fileReader.onload = function () {
+                                        var typedArray = new Uint8Array(this.result);
+                                        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.3.122/pdf.worker.min.js';
+                                        pdfjsLib.getDocument(typedArray).promise.then(function (pdf) {
+                                                  var numPages = pdf.numPages;
+                                                  var text = "";
+
+                                                  for (var i = 1; i <= numPages; i++) {
+                                                            pdf.getPage(i).then(function (page) {
+                                                                      return page.getTextContent();
+                                                            }).then(function (content) {
+                                                                      var strings = content.items.map(function (item) {
+                                                                                return item.str;
+                                                                      });
+                                                                      text += strings.join(" ");
+                                                                      console.log("content", strings.join(" "));
+                                                                      pdfTextarea.value = text;
+                                                            });
+                                                  }
+                                        });
+                              };
+
+                              fileReader.readAsArrayBuffer(file);
+                    });
+          </script>
+</body>
+
+</html>
